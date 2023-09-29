@@ -12,7 +12,7 @@ from electronic_device import SmartPhone
 from electronic_device import Laptop
 from electronic_device import SmartWatch
 
-VERSION = 0.05
+VERSION = 0.06
 
 
 def display_battery_life(device:ElectronicDevice):
@@ -24,7 +24,9 @@ class BatteryWidget(ttk.Frame):
     the battery status of a given device."""
 
     def __init__(self, parent, device, **kwargs):
-        """Initializes a widget for a given device."""
+        """Initializes a widget for a given device. 
+        Adding Increase, Decrease and Super Charge Buttons 
+        to the main canvas"""
         super().__init__(parent, **kwargs)
         self.device = device
 
