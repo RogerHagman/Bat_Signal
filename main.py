@@ -12,7 +12,7 @@ from electronic_device import SmartPhone
 from electronic_device import Laptop
 from electronic_device import SmartWatch
 
-VERSION = 0.04
+VERSION = 0.05
 
 
 def display_battery_life(device:ElectronicDevice):
@@ -74,38 +74,56 @@ class BatteryWidget(ttk.Frame):
         self.update_battery_graphics()
 
     def update_battery_graphics(self):
-        """Updates graphical representation of a battery's charge 
-        level."""
+        """Updates graphical representation of a battery's charge level."""
         self.canvas.delete("all")
         fill_percent = self.device.battery_life / self.device.max_battery_life
         fill_width = int(fill_percent * 100)
+        
+        # In the case of the depleated battery the entire rectangle
+        # Should turn solid black.
         if fill_percent == 0:
-            # In the case of the depleated battery we need to override 
-            # the fill_width calculation in order to fill the entire 
-            # battery life rectangle in with black color.
             self.canvas.create_rectangle(0, 0, 100, 30, fill='black')
+            return
+        
+        color = self.get_battery_color(fill_percent)
+        self.canvas.create_rectangle(0, 0, fill_width, 30, fill=color)
+
+    def get_battery_color(self, fill_percent: float) -> str:
+        """Returns the battery color based on current charge level."""
+        if fill_percent == 0:
+            return 'black'
         elif 0 < fill_percent <= 0.20:
-            self.canvas.create_rectangle(0, 0, fill_width, 30, fill='red')
-        elif .20 < fill_percent < 0.70:
-            self.canvas.create_rectangle(0, 0, fill_width, 30, fill='yellow')
+            return 'red'
+        elif 0.20 < fill_percent <= 0.35:
+            return 'orange'
+        elif 0.35 < fill_percent <= 0.60:
+            return 'yellow'
+        elif 0.60 < fill_percent <= 0.75:
+            return 'green'
         else:
-            self.canvas.create_rectangle(0, 0, fill_width, 30, fill='green')
+            return 'darkgreen'
 
 def main():
     """Initialized the devices and runs the main application."""
+    
+    # Setup the main Tkinter window to provide a GUI interface.
     root = tk.Tk()
     root.geometry("250x400")
     root.title("Bat Signal: The Battery Reader")
 
-    smartphone = SmartPhone()
-    laptop = Laptop()
-    smartwatch = SmartWatch()
-
-    devices = [smartphone, laptop, smartwatch]
-    for idx, device in enumerate(devices):
-        widget = BatteryWidget(root, device)
+    # Device classes
+    devices = [SmartPhone, Laptop, SmartWatch]
+    
+    # Initialize all devices and add BatteryWidgets to the main window
+    for idx, device_cls in enumerate(devices):
+        # Creates an instance of every device
+        device_instance = device_cls()
+        widget = BatteryWidget(root, device_instance)
         widget.grid(row=idx, pady=10)
         widget.update_battery_graphics()
+    
+    # Start the main event loop, the mainloop will subsequently listen for
+    # additional calls.
     root.mainloop()
 
 if __name__ == "__main__":
