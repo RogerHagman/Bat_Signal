@@ -11,11 +11,16 @@ from electronic_device import ElectronicDevice
 from electronic_device import SmartPhone
 from electronic_device import Laptop
 from electronic_device import SmartWatch
+import logging
 
-VERSION = 0.06
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename='bat_signal.log')
+
+VERSION = 0.08
 
 
-def display_battery_life(device:ElectronicDevice):
+def display_battery_life(device:ElectronicDevice) -> None:
     """Display the current battery life for the given device."""
     print(device.get_battery_life())
 
@@ -32,7 +37,7 @@ class BatteryWidget(ttk.Frame):
 
         self.grid(sticky=(tk.W + tk.E + tk.N + tk.S))
 
-        self.battery_label = ttk.Label(self, 
+        self.battery_label = ttk.Label(self,
                                        text=self.device.get_battery_life())
         self.battery_label.grid(row=0, column=0, columnspan=3, pady=5)
 
@@ -53,30 +58,39 @@ class BatteryWidget(ttk.Frame):
 
         self.update_battery_graphics()
 
-    def increase_battery(self):
+    def increase_battery(self) -> None:
         """Increase the battery life of the device by one hour."""
         self.device.battery_life = min(self.device.battery_life + 1,
                                        self.device.max_battery_life)
+        logging.info(
+            f"Increasing battery life for {self.device.__class__.__name__}. "
+            f"New battery life: {self.device.battery_life}.")
         self.update_display()
 
-    def decrease_battery(self):
+    def decrease_battery(self) -> None:
         """Decrease the battery life of the device by one hour."""
         self.device.battery_life = max(self.device.battery_life - 1, 0)
+        logging.info(
+            f"Decreasing battery life for {self.device.__class__.__name__}. "
+            f"New battery life: {self.device.battery_life}.")
         self.update_display()
 
-    def charge_battery(self):
+    def charge_battery(self) -> None:
         """Instantly Supercharges the device's battery, bringing 
         the battery life up to the device's maximum."""
         self.device.battery_life = self.device.max_battery_life
+        logging.info(f"Supercharging {self.device.__class__.__name__}. "
+        f"New battery life: {self.device.battery_life}.")
         self.update_display()
 
-    def update_display(self):
+    def update_display(self) -> None:
         """Updates the displayed batterys status."""
         self.battery_label["text"] = self.device.get_battery_life()
         self.update_battery_graphics()
 
-    def update_battery_graphics(self):
+    def update_battery_graphics(self) -> None:
         """Updates graphical representation of a battery's charge level."""
+        
         self.canvas.delete("all")
         fill_percent = self.device.battery_life / self.device.max_battery_life
         fill_width = int(fill_percent * 100)
@@ -85,6 +99,8 @@ class BatteryWidget(ttk.Frame):
         # Should turn solid black.
         if fill_percent == 0:
             self.canvas.create_rectangle(0, 0, 100, 30, fill='black')
+            logging.warning(
+            f"{self.device.__class__.__name__} Battery Depleted! ")
             return
         
         color = self.get_battery_color(fill_percent)
